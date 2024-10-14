@@ -18,6 +18,6 @@ This is primarily a quick proof of concept showing React and Splunk UI since exa
 ## What else is needed to run this?
 Besides the standard yarn install to run the project, the sample Python backend is also needed.  Currently, this app points to http://192.167.1.78:5000 since that is where I have it running locally.  A live demo of the functionality can be provided if desired.  Some screenshots are provided below:
 
-![Import/Listing Page](/public/screenshot-2.png "Import/Listing Page")
+![Import/Listing Page](/public/screenshot-2.png?raw=true "Import/Listing Page")
 
-![Detail/Visualization Page](/public/screenshot-1.png "Detail/Visualization Page")
+![Detail/Visualization Page](/public/screenshot-1.png?raw=true "Detail/Visualization Page")
