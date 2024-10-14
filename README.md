@@ -16,7 +16,7 @@ The app is a small adaptation in React of a hobby project originally written in 
 This is primarily a quick proof of concept showing React and Splunk UI since example of my previous React experience is no longer live.
 
 ## What else is needed to run this?
-Besides the standard yarn install to run the project, the sample Python backend is also needed.  Currently, this app points to http://192.167.1.78:5000 since that is where I have it running locally.  A live demo of the functionality can be provided if desired.  Some screenshots are provided below:
+Besides the standard yarn install to run the project, the [sample Python backend](https://github.com/bcyde/python-demo) is also needed.  Currently, this app points to http://192.167.1.78:5000 since that is where I have it running locally.  A live demo of the functionality can be provided if desired.  Some screenshots are provided below:
 
 ![Import/Listing Page](/public/screenshot-2.png?raw=true "Import/Listing Page")
 
