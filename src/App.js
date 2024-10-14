@@ -17,14 +17,10 @@ function App() {
     const APIENDPOINT = 'http://192.168.1.78:5000/'
     /**
      * todo:
-THURS
-     * theme
-     * custom font
-     * wait spinner UI
-FRI
-    FINAL DESIGN
-    PYTHON API
-*/
+     * import functionality     
+     * esling/stylint     
+     * 
+    */
 
     return (
         <BrowserRouter>

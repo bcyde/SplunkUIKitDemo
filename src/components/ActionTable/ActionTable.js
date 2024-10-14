@@ -43,7 +43,7 @@ const ActionTable = (props) => {
             </Table.Head>
             <Table.Body>
                 {props.data.map((row) => (
-                    <Table.Row style={{background: '#ff0000'}} data={row} key={row[props.rowkey]} actionsSecondary={rowActionSecondaryMenu}>
+                    <Table.Row data={row} key={row[props.rowkey]} actionsSecondary={rowActionSecondaryMenu}>
                         {props.columns.map( 
                             (c) => {                                    
                                 return (<Table.Cell key={c.name}>{row[c.name]}</Table.Cell>)

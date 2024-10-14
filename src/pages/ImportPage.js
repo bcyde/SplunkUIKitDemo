@@ -7,8 +7,11 @@ import ControlGroup from '@splunk/react-ui/ControlGroup';
 import Text from '@splunk/react-ui/Text';
 import Button from '@splunk/react-ui/Button';
 
-import { StyledContainer, StyledGreeting } from '../global/ThemeStyles';
 import ActionTable from '../components/ActionTable/ActionTable';
+
+import getTheme from '@splunk/themes/getTheme';
+import SplunkThemeProvider from '@splunk/themes/SplunkThemeProvider';
+const baseTheme = getTheme({family: 'prisma', colorScheme: 'dark', density: 'comfortable' });
 
 function ImportPage(props) {
     const  [tournamentValue, setTournamentValue] =  useState('');
@@ -61,9 +64,8 @@ function ImportPage(props) {
                             };
                             props.createToast(toastProps);
                         }
-                    }
-                    
-                    getTournaments()
+                    }                    
+                    getTournaments();
                 });
         } else {
             console.log('An error occured attempting to delete tournament, either no apiEndpoint set, or no id specified.')
@@ -75,20 +77,44 @@ function ImportPage(props) {
         { label: 'Delete', eventHandler: deleteTournament}
     ];
 
-    const importStuff = () => {
-        if (props.hasOwnProperty('createToast') ) {
-            const toastProps = {
-                message: `Tournament imported successfully.`,
-                type: TOAST_TYPES.SUCCESS,        
-            };
-            props.createToast(toastProps);
+    const importTournament = (id) => {
+        if (props.hasOwnProperty('apiEndpoint') ) {            
+            fetch(props.apiEndpoint + `tournaments`, 
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        id: id,
+                    })
+                })
+                .then((res) => {                    
+                    return res.json();
+                })
+                .then((data) => {
+                    if (data.status == 'Success') {
+                        if (props.hasOwnProperty('createToast') ) {
+                            const toastProps = {
+                                message: `Tournament imported successfully.`,
+                                type: TOAST_TYPES.SUCCESS,        
+                            };
+                            props.createToast(toastProps);
+                        }
+                    } else {
+                        if (props.hasOwnProperty('createToast') ) {
+                            const toastProps = {
+                                message: `Unable to import tournament.`,
+                                type: TOAST_TYPES.ERROR,
+                            };
+                            props.createToast(toastProps);
+                        }
+                    }                    
+                    getTournaments();
+                });
         }
     };
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        alert(tournamentValue);
-        
+        importTournament(tournamentValue);
     };
     
     useEffect(() => {                
@@ -96,21 +122,21 @@ function ImportPage(props) {
     }, []);
 
     const columns = [
-        { name: 'name', label: 'Name'},
+        { name: 'name', label: 'Tournament Name'},
         { name: 'event_date', label: 'Event Date'}
     ];
 
     return (
         <div>
-            <StyledContainer>
+            <SplunkThemeProvider family="prisma" colorScheme="dark" density="comfortable">
                 <form onSubmit={handleSubmit}>
                     <ControlGroup label="Tournament ID:" labelPosition="top" tooltip="The numerical id of the tournament">
                         <Text value={tournamentValue} onChange={handleTournamentChange} canClear autoFocus name="tournament" />
                         <Button type="submit" label="Import" appearance="primary" />
                     </ControlGroup>
-                </form>                 
-            </StyledContainer>        
-            <ActionTable data={tournamentList} apiBase="http://192.168.1.78:3000" rowKey="id" columns={columns} actionMenu={actionMenuOptions}/>
+                </form>                             
+                <ActionTable data={tournamentList} apiBase="http://192.168.1.78:3000" rowKey="id" columns={columns} actionMenu={actionMenuOptions}/>
+            </SplunkThemeProvider >
         </div>
     );
     

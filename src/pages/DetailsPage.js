@@ -1,91 +1,137 @@
-import Column from '@splunk/visualizations/Column';
+import { useEffect, useState } from 'react';
+import { useParams } from 'react-router';
+
+
 import Table from '@splunk/react-ui/Table';
-import TourneyTree from '../components/TourneyTree';
+import Bar from '@splunk/visualizations/Bar';
+import Pie from '@splunk/visualizations/Pie';
+
+import getTheme from '@splunk/themes/getTheme';
+import SplunkThemeProvider from '@splunk/themes/SplunkThemeProvider';
+const baseTheme = getTheme({family: 'prisma', colorScheme: 'dark', density: 'comfortable' });
 
 const DetailsPage = (props) => {
     
-    const data = [
-        { name: 'Rylan', age: 42, email: 'Angelita_Weimann42@gmail.com' },
-        { name: 'Amelia', age: 24, email: 'Dexter.Trantow57@hotmail.com' },
-        { name: 'Estevan', age: 56, email: 'Aimee7@hotmail.com' },
-        { name: 'Florence', age: 71, email: 'Jarrod.Bernier13@yahoo.com' },
-        { name: 'Tressa', age: 38, email: 'Yadira1@hotmail.com' },
-    ];
+    const  [tournamentList, setTournamentListValue] =  useState([]);
+    const  [barColumns, setBarColumnsValue] =  useState({});
+    const  [pieColumns, setPieColumnsValue] =  useState({}); //pie columns data
+    const  [graphCount, setGraphCountValue] =  useState(0); //meta count total for visualizations    
+    const  [tournamentName, setTournamentNameValue] =  useState(''); //tournament title
+    const params = useParams();
+    
+    const calculateAggregateData = (data) => {
+        const playerData = {};
+        //get total game/match wins by player for some sample visualizations
+        data.map( (row) => {
+            //initialize player objects if they don't exist
+            if (!playerData.hasOwnProperty(row.player_1_name) ) {
+                playerData[row.player_1_name] = {games: 0, matches: 0};
+            }
+            if (!playerData.hasOwnProperty(row.player_2_name) ) {
+                playerData[row.player_2_name] = {games: 0, matches: 0};
+            }
+            //update total game wins for each player
+            playerData[row.player_1_name].games += row.player_1_score; 
+            playerData[row.player_2_name].games += row.player_2_score; 
+            
+            //update total match wins for each player
+            if (row.player_1_name == row.winner_name) {
+                playerData[row.player_1_name].matches ++; 
+            } else {
+                playerData[row.player_2_name].matches ++; 
+            }            
+        });
+        return playerData;
+    }    
+
+    const getMatches = () => {                
+        if (props.hasOwnProperty('apiEndpoint') ) {            
+            fetch(props.apiEndpoint + 'tournaments/' + parseInt(params.tournament_id) )
+                .then((res) => {                                   
+                    return res.json();
+                })
+                .then((data) => {
+                    setTournamentListValue(data)
+                    const aggregateData = calculateAggregateData(data);
+                    const playerNames = Object.keys(aggregateData); 
+                    playerNames.sort();
+                    const pieValues = []; 
+                    const barValues = [];
+                    playerNames.map( (currentPlayer) => {
+                        pieValues.push(aggregateData[currentPlayer].games);
+                        barValues.push(aggregateData[currentPlayer].matches);
+                    });
+
+                    setBarColumnsValue([playerNames, barValues]);
+                    setPieColumnsValue([playerNames, pieValues]);
+                    setGraphCountValue(playerNames.length);
+                    if (data.length) {
+                        setTournamentNameValue(data[0].tournament_name)
+                    }                
+                });
+        }        
+    };
+
+    useEffect(() => {                
+        getMatches();      
+     }, []);
 
     return (
-        <div>
-            View Functionality
-            <br/>
-            Winnner Summary
-            <br/>
-            Table list users and their record
-            <br/>
-            Bar
-            <Column
-                options={{
-                    annotationLabel: '> annotation|seriesByIndex(1)',
-                    annotationColor: '> annotation|seriesByIndex(2)',
-                    annotationX: '> annotation|seriesByIndex(0)',
-                }}
-                dataSources={{
-                    primary: {
-                        requestParams: { offset: 0, count: 20 },
-                        data: {
-                            fields: [{ name: '_time', groupby_rank: '0' }, { name: 'count' }, { name: '_span' }],
-                            columns: [
-                                [
-                                    '2018-05-02T18:10:46.000-07:00',
-                                    '2018-05-02T18:11:47.000-07:00',
-                                    '2018-05-02T18:12:48.000-07:00',
-                                    '2018-05-02T18:13:49.000-07:00',
-                                    '2018-05-02T18:15:50.000-07:00',
-                                    '2018-05-02T18:17:30.000-07:00',
-                                ],
-                                ['2', '10', '13', '60', '43', '85'],
-                                ['1', '1', '1', '1', '1', '1'],
-                            ],
-                        },
-                        meta: { totalCount: 20 },
-                    },
-                    annotation: {
-                        requestParams: { offset: 0, count: 20 },
-                        data: {
-                            fields: [
-                                { name: '_time', groupby_rank: '0' },
-                                { name: 'annotation_label' },
-                                { name: 'annotation_color' },
-                            ],
-                            columns: [
-                                [
-                                    '2018-05-02T18:11:50.000-07:00',
-                                    '2018-05-02T18:13:25.000-07:00',
-                                    '2018-05-02T18:14:30.000-07:00',
-                                ],
-                                ['houston, we have a problem', 'just close the jira', 'looking good now'],
-                                ['#f44271', '#f4a941', '#41f49a'],
-                            ],
-                        },
-                        meta: { totalCount: 20 },
-                    },
-                }}
-            />
-            <Table>
-                <Table.Head>
-                    <Table.HeadCell>Name</Table.HeadCell>
-                    <Table.HeadCell>Age</Table.HeadCell>
-                    <Table.HeadCell>Email</Table.HeadCell>
-                </Table.Head>
-                <Table.Body>
-                    {data.map((row) => (
-                        <Table.Row key={row.email}>
-                            <Table.Cell>{row.name}</Table.Cell>
-                            <Table.Cell>{row.age}</Table.Cell>
-                            <Table.Cell>{row.email}</Table.Cell>
-                        </Table.Row>
-                    ))}
-                </Table.Body>
-            </Table>
-            <TourneyTree />
+        <div style={{color: baseTheme.contentColorDefault}}>
+            <h1>Tournament Details: {tournamentName}</h1>
+            <SplunkThemeProvider family="prisma" colorScheme="dark" density="comfortable">                
+                <h2>Player Game Wins</h2>
+                <Bar                    
+                    options={{                        
+                        height: 400
+                    }}           
+                    dataSources={{
+                        primary: {
+                            requestParams: { offset: 0, count: graphCount },
+                            data: {
+                                fields: [{ name: 'Player'}, { name: 'Game Wins' }],
+                                columns: barColumns
+                            },
+                            meta: { totalCount: graphCount },
+                        }
+                    }}
+                />
+                <h2>Player Set Wins</h2>            
+                <Pie
+                    options={{                        
+                        height: 400
+                    }}                    
+                    dataSources={{
+                        primary: {
+                            requestParams: { offset: 0, count: graphCount },
+                            data: {
+                                fields: [{ name: 'Player'}, { name: 'Match Wins' }],
+                                columns: pieColumns
+                            },
+                            meta: { totalCount: graphCount },
+                        }
+                    }}
+                />
+                <h2>Tournament Summary</h2>                
+                <Table>
+                    <Table.Head>
+                        <Table.HeadCell>Player 1</Table.HeadCell>
+                        <Table.HeadCell>Player 2</Table.HeadCell>
+                        <Table.HeadCell>Score</Table.HeadCell>
+                        <Table.HeadCell>Winner</Table.HeadCell>                    
+                    </Table.Head>
+                    <Table.Body>
+                        {tournamentList.map((row) => (
+                            <Table.Row key={row.id}>
+                                <Table.Cell>{row.player_1_name}</Table.Cell>
+                                <Table.Cell>{row.player_2_name}</Table.Cell>
+                                <Table.Cell>{row.player_1_score} - {row.player_2_score}</Table.Cell>
+                                <Table.Cell>{row.winner_name}</Table.Cell>
+                            </Table.Row>
+                        ))}
+                    </Table.Body>
+                </Table>            
+            </SplunkThemeProvider>
         </div>
     );
 }
