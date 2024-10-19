@@ -78,38 +78,47 @@ function ImportPage(props) {
     ];
 
     const importTournament = (id) => {
-        if (props.hasOwnProperty('apiEndpoint') ) {            
-            fetch(props.apiEndpoint + `tournaments`, 
-                {
-                    method: "POST",
-                    body: JSON.stringify({
-                        id: id,
+        try {
+            const formData = new FormData();
+            formData.append('tournament_id', id);
+            if (props.hasOwnProperty('apiEndpoint') ) {            
+                fetch(props.apiEndpoint + `tournaments`, 
+                    {
+                        method: "POST",
+                        body: formData
                     })
-                })
-                .then((res) => {                    
-                    return res.json();
-                })
-                .then((data) => {
-                    if (data.status == 'Success') {
-                        if (props.hasOwnProperty('createToast') ) {
-                            const toastProps = {
-                                message: `Tournament imported successfully.`,
-                                type: TOAST_TYPES.SUCCESS,        
-                            };
-                            props.createToast(toastProps);
-                        }
-                    } else {
-                        if (props.hasOwnProperty('createToast') ) {
-                            const toastProps = {
-                                message: `Unable to import tournament.`,
-                                type: TOAST_TYPES.ERROR,
-                            };
-                            props.createToast(toastProps);
-                        }
-                    }                    
-                    getTournaments();
-                });
+                    .then((res) => {     
+                        if (res.status == 200) {
+                            return res.json();
+                        } else {
+                            return null;
+                        }                        
+                    })
+                    .then((data) => {
+                        if (data && data.hasOwnProperty('status') && data.status == 'Success') {
+                            if (props.hasOwnProperty('createToast') ) {
+                                const toastProps = {
+                                    message: `Tournament imported successfully.`,
+                                    type: TOAST_TYPES.SUCCESS,        
+                                };
+                                props.createToast(toastProps);
+                            }
+                        } else {
+                            if (props.hasOwnProperty('createToast') ) {
+                                const toastProps = {
+                                    message: `Unable to import tournament.`,
+                                    type: TOAST_TYPES.ERROR,
+                                };
+                                props.createToast(toastProps);
+                            }
+                        }                    
+                        getTournaments();
+                    });
+            }
+        } catch (error) {
+            console.log('An error occurred trying to import tournament', error);
         }
+        
     };
 
     const handleSubmit = (event) => {
